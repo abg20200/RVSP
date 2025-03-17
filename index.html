@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Untitled</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binakan Apss Servey</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Maklumat Majlis -->
+        <div class="info">
+            <h2>Maklumat Majlis</h2>
+            <p>Tarikh: <span id="eventDate">15 Disember 2023</span></p>
+            <p>Masa: <span id="eventTime">7:00 PM</span></p>
+            <p>Lokasi: <span id="eventLocation">Dewan Seri Melati, Kuala Lumpur</span></p>
+        </div>
+
+        <!-- Formulir Survei -->
+        <div class="survey-form">
+            <h2>RSVP Kehadiran Majlis</h2>
+            <form id="attendanceForm">
+                <label for="name">Nama Pekerja:</label>
+                <input type="text" id="name" required pattern="[A-Za-z\s]+" title="Hanya huruf dan ruang sahaja dibenarkan" maxlength="50">
+
+                <label for="attendance">Status Kehadiran:</label>
+                <select id="attendance" onchange="togglePartnerOption()" required>
+                    <option value="">Pilih Status</option>
+                    <option value="Hadir">Hadir</option>
+                    <option value="Tidak Hadir">Tidak Hadir</option>
+                    <option value="Tertunda">Tertunda</option>
+                </select>
+
+                <div id="partnerOption" style="display: none;">
+                    <label for="partner">Hadir Bersama:</label>
+                    <select id="partner">
+                        <option value="Dengan Pasangan">Dengan Pasangan</option>
+                        <option value="Tanpa Pasangan">Tanpa Pasangan</option>
+                    </select>
+                </div>
+
+                <button type="submit">Hantar Respons</button>
+            </form>
+        </div>
+
+        <!-- Mesej Terima Kasih -->
+        <div id="thankYouMessage" style="display: none;">
+            <h3>Terima Kasih!</h3>
+            <p>Respons anda telah direkodkan.</p>
+        </div>
+
+        <!-- Butang ke Panel Admin -->
+        <button onclick="showAdminLogin()">Buka Panel Admin</button>
+
+        <!-- Modal untuk Autentikasi Admin -->
+        <div id="adminLoginModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeAdminLogin()">×</span>
+                <h3>Log Masuk Admin</h3>
+                <form id="adminLoginForm">
+                    <label for="adminPassword">Kata Laluan:</label>
+                    <input type="password" id="adminPassword" required>
+                    <button type="submit">Log Masuk</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal untuk Edit Respons -->
+        <div id="editResponseModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeEditResponseModal()">×</span>
+                <h3>Edit Respons</h3>
+                <form id="editResponseForm">
+                    <input type="hidden" id="editResponseIndex">
+                    <label for="editName">Nama Pekerja:</label>
+                    <input type="text" id="editName" required pattern="[A-Za-z\s]+" title="Hanya huruf dan ruang sahaja dibenarkan" maxlength="50">
+
+                    <label for="editAttendance">Status Kehadiran:</label>
+                    <select id="editAttendance" onchange="toggleEditPartnerOption()" required>
+                        <option value="">Pilih Status</option>
+                        <option value="Hadir">Hadir</option>
+                        <option value="Tidak Hadir">Tidak Hadir</option>
+                        <option value="Tertunda">Tertunda</option>
+                    </select>
+
+                    <div id="editPartnerOption" style="display: none;">
+                        <label for="editPartner">Hadir Bersama:</label>
+                        <select id="editPartner">
+                            <option value="Dengan Pasangan">Dengan Pasangan</option>
+                            <option value="Tanpa Pasangan">Tanpa Pasangan</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">Simpan Perubahan</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Panel Admin -->
+        <div id="adminPanel" style="display: none;">
+            <h2>Panel Admin</h2>
+            <button onclick="adminLogout()" class="logout-btn">Log Keluar</button>
+            <button onclick="deleteAllData()" class="delete-all-btn">Padam Semua Maklumat</button>
+            <button onclick="refreshPanel()" class="refresh-btn">Refresh</button>
+
+            <!-- Pilihan Tema -->
+            <div class="theme-selector">
+                <label for="themeSelect">Tema Warna:</label>
+                <select id="themeSelect" onchange="changeTheme()">
+                    <option value="green">Hijau</option>
+                    <option value="blue">Biru</option>
+                    <option value="purple">Ungu</option>
+                </select>
+            </div>
+
+            <!-- Tetapkan Had Maksimum RSVP -->
+            <div class="max-rsvp-setting">
+                <h3>Tetapkan Had Maksimum RSVP</h3>
+                <form id="maxRsvpForm">
+                    <label for="maxRsvp">Had Maksimum Kehadiran:</label>
+                    <input type="number" id="maxRsvp" min="1" required>
+                    <button type="submit">Simpan Had</button>
+                </form>
+            </div>
+
+            <!-- Progres RSVP (Hanya untuk Admin) -->
+            <div class="progress-container">
+                <label>Progres RSVP:</label>
+                <div class="progress-bar">
+                    <div id="progressFill" style="width: 0%;"></div>
+                </div>
+                <span id="progressText">0% (0/100)</span>
+            </div>
+
+            <!-- Form untuk Mengemas Kini Maklumat Majlis -->
+            <div class="update-event-info">
+                <h3>Kemas Kini Maklumat Majlis</h3>
+                <form id="updateEventForm">
+                    <label for="newEventDate">Tarikh:</label>
+                    <input type="text" id="newEventDate" placeholder="Contoh: 15 Disember 2023" required>
+
+                    <label for="newEventTime">Masa:</label>
+                    <input type="text" id="newEventTime" placeholder="Contoh: 7:00 PM" required>
+
+                    <label for="newEventLocation">Lokasi:</label>
+                    <input type="text" id="newEventLocation" placeholder="Contoh: Dewan Seri Melati, Kuala Lumpur" required>
+
+                    <button type="submit">Simpan Perubahan</button>
+                </form>
+            </div>
+
+            <button onclick="exportToCSV()">Eksport ke CSV</button>
+            
+            <!-- Bahagian Ringkasan Kehadiran -->
+            <div class="summary">
+                <h3>Ringkasan Kehadiran</h3>
+                <p>Jumlah Keseluruhan Respons: <span id="totalResponses">0</span></p>
+                <p>Jumlah Hadir: <span id="totalHadir">0</span> (Pekerja yang memilih Hadir)</p>
+                <p>Jumlah Tidak Hadir: <span id="totalTidakHadir">0</span></p>
+                <p>Jumlah Tertunda: <span id="totalTertunda">0</span></p>
+                <p>Jumlah Individu Hadir Dengan Pasangan: <span id="totalDenganPasangan">0</span> (Pekerja + Pasangan)</p>
+                <p>Jumlah Individu Hadir Tanpa Pasangan: <span id="totalTanpaPasangan">0</span> (Pekerja Sahaja)</p>
+                <p>Jumlah Keseluruhan Individu Hadir: <span id="totalIndividuHadir">0</span> (Pekerja + Pasangan)</p>
+            </div>
+
+            <div class="charts">
+                <div>
+                    <label>Paparan Graf:</label>
+                    <select id="chartUnit" onchange="renderCharts()">
+                        <option value="pekerja">Bilangan Pekerja</option>
+                        <option value="individu">Bilangan Individu</option>
+                    </select>
+                </div>
+                <canvas id="attendanceChart" width="400" height="200"></canvas>
+                <canvas id="partnerChart" width="400" height="200"></canvas>
+            </div>
+            <h3>Senarai Respons</h3>
+            <input type="text" id="searchInput" placeholder="Cari nama pekerja..." onkeyup="searchTable()">
+            <table id="responseTable">
+                <thead>
+                    <tr>
+                        <th>Nama <button class="sort-btn" onclick="sortTable('name')">⬍</button></th>
+                        <th>Status Kehadiran</th>
+                        <th>Bersama Pasangan</th>
+                        <th>Tarikh Respons <button class="sort-btn" onclick="sortTable('timestamp')">⬍</button></th>
+                        <th>Tindakan</th>
+                    </tr>
+                </thead>
+                <tbody id="responseTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
+<!-- partial -->
+  <script  src="./script.js"></script>
+
+</body>
+</html>
